@@ -1,0 +1,332 @@
+#Flag variables for task execution confirmation
+# yes to execute task , no to skip task
+# Default: no
+CONFIGURE_PASSWORD_PARAM_ISRUN: no
+LOGGING_ISRUN: no
+NETWORK_CONF_ISRUN: no
+PROTECTING_RESOURCES_ISRUN: no
+
+
+#task 1
+PASS_MAX_DAYS: PASS_MAX_DAYS 60
+PASS_MIN_DAYS: PASS_MIN_DAYS  1
+
+
+PASS_MIN_LENGTH: PASS_MIN_LEN  8
+
+#tass2 and 6
+PASS_MAX_DAY: 60
+PASS_MIN_DAY: 1
+
+#Task 172
+business_Use_Notice_motd: /etc/motd
+business_Use_Notice_issue: /etc/issue
+
+business_Use_Notice_motd_j2: roles/linux/templates/motd.j2
+business_Use_Notice_issue_j2: roles/linux/templates/motd.j2
+
+
+#task 23
+REPLACE_NOLOGIN: /bin/bash
+
+#Login param
+
+# password   required    pam_cracklib.so retry=3 minlen=8 dcredit=-1 ucredit=0 lcredit=-1 ocredit=0 reject_username
+# password   sufficient    pam_unix.so remember=7 use_authtok sha512 shadow 
+# password   required     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=Linux minlen=8 dcredit=-1 ucredit=0 lcredit=-1 ocredit=0 minclass=3
+# password   sufficient   pam_unix.so remember=8 nullok use_authtok sha512 shadow
+# password   required     pam_deny.so
+
+#task 4
+# password_required: password   requisite    pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=Linux minlen=8 dcredit=-1 ucredit=0 lcredit=-1 ocredit=0 minclass=3
+# password_sufficient: password   sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+
+
+password_requisite: password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=Linux minlen=8 dcredit=-1 ucredit=0 lcredit=-1 ocredit=0 minclass=3 reject_username
+password_sufficient: password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+
+# password_required: password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=Linux minlen=8 dcredit=-1 ucredit=0 lcredit=-1 ocredit=0 minclass=3
+# password_sufficient: password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+#password_required: password    required      pam_deny.so
+
+# password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=Linux minlen=8 dcredit=-1 ucredit=0 lcredit=-1 ocredit=0 minclass=3
+# password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+
+# password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=Linux minlen=8 dcredit=-1 ucredit=0 lcredit=-1 ocredit=0 minclass=3
+# password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+
+# password    requisite     pam_cracklib.so try_first_pass retry=3 type=
+# password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok
+# password    required      pam_deny.so
+
+# task 30 
+auth_required: auth required /lib/security/$ISA/pam_listfile.so item=user sense=deny file=/etc/security/$FILENAME onerr=succeed
+
+#task 34
+UsePAM: UsePAM yes
+
+#task 35
+syslog_messages: "*.info;mail.none;authpriv.none;cron.none /var/log/messages"
+syslog_secure: authpriv.* /var/log/secure
+
+#task 46
+ROTATE: rotate 13
+        
+
+
+
+account_required: account required /lib/security/pam_deny.so
+
+
+#Logging
+
+wtmp: /var/log/wtmp
+msgs: /var/log/messages
+syslog: /var/log/syslog
+faillog: /var/log/faillog
+taillog: /var/log/taillog
+secure: /var/log/secure
+auth: /var/log/auth.log
+logrotate: /etc/logrotate.conf
+
+
+logrotate_msg: rotate 13
+logrotate_format: weekly 
+
+syslog_conf:
+- { dest: "/etc/syslog.conf", regexp: '^(.*)info;mail.none;authpriv.none;cron.none(.*)$',  line: "*.info;mail.none;authpriv.none;cron.none /var/log/messages"}
+- { dest: "/etc/syslog.conf", regexp: '^authpriv(.*)$',  line: "authpriv.* /var/log/secure"}
+rsyslog_conf:
+- { dest: "/etc/rsyslog.conf", regexp: '^(.*)ActionFileDefaultTemplate RSYSLOG_(.*)$',  line: "$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat"}
+- { dest: "/etc/rsyslog.conf", regexp: '^(.*)info;mail.none;authpriv.none;cron.none(.*)$',  line: "*.info;mail.none;authpriv.none;cron.none /var/log/messages"}
+- { dest: "/etc/rsyslog.conf", regexp: '^authpriv(.*)$',  line: "authpriv.* /var/log/secure"}
+syslog_ng:
+- { dest: "/etc/syslog-ng/syslog-ng.conf", regexp: '^filter f_authpriv(.*)$',  line: "filter f_authpriv { facility(auth,authpriv); };"}
+- { dest: "/etc/syslog-ng/syslog-ng.conf", regexp: '^destination authpriv(.*)$',  line: "destination authpriv { file(/var/log/secure); };"}
+- { dest: "/etc/syslog-ng/syslog-ng.conf", regexp: '^(.*)source(src); filter(f_authpriv)(.*)$',  line: "log { source(src); filter(f_authpriv); destination(authpriv); };"}
+rsyslog:
+- { dest: "/etc/rsyslog.conf", regexp: '^filter f_authpriv(.*)$',  line: "filter f_authpriv { facility(authpriv); };"}
+- { dest: "/etc/rsyslog.conf", regexp: '^destination authpriv(.*)$',  line: "destination authpriv { file(/var/log/secure;RSYSLOG_TraditionalFileFormat); };"}
+- { dest: "/etc/rsyslog.conf", regexp: '^source src { internal()(.*)$',  line: "source src { internal(); };"}
+- { dest: "/etc/rsyslog.conf", regexp: '^(.*)source(src); filter(f_authpriv)(.*)$',  line: "log { source(src); filter(f_authpriv); destination(authpriv); };"}
+
+
+
+#Network Config Variables
+#task 97, 98 , 99  Secure network
+
+syncookies: net.ipv4.tcp_syncookies=1
+icmp_broadcasts: net.ipv4.icmp_echo_ignore_broadcasts=1
+network_redirects: net.ipv4.conf.all.accept_redirects=0
+
+
+#Disable services
+disable_services:
+- "daytime"
+- "systat"
+- "netstat"
+- "nfs-kernel-server"
+- "chargen"
+- "discard"
+- "echo"
+- "finger"
+- "rwho"
+- "rstatd"
+- "tftp"
+- "rwalld"
+- "rusersd"
+- "discard"
+- "bootps"
+- "sprayd"
+- "pcnfsd"
+- "cmsd"
+- "dtspcd"
+- "ttdbserver"
+- "telnet"
+- "vsftpd"
+- "rexd"
+- "nis"
+
+
+#.....................................Protecting Resource Variable ..........................................................................
+
+
+#task 171
+UMASK_VALUE: umask 077
+cshrc: /etc/skel/.cshrc
+loginFile: /etc/skel/.login
+profileFile: /etc/skel/.profile
+bashrc: /etc/skel/.bashrc
+bashProfile: /etc/skel/.bash_profile
+bashLogin: /etc/skel/.bash_login
+tcshrc: /etc/skel/.tcshrc
+
+#task 114
+usrDirectory: /usr
+
+#task 115
+etcDirectory: /etc
+
+#task 116
+opasswdFile: /opasswd
+
+#task 117
+shadowFile: /shadow
+
+#task 118
+varDirectory: /var
+
+#task 119
+varLogDirectory: /var/log
+
+#task 120
+varFailLogFile1: /var/log/faillog
+varFailLogFileMode1: 0600
+
+#task 121
+tallyLogDirectory: /var/log/tallylog
+
+#task 122
+varLogMessages: /var/log/messages
+varLogSyslog: /var/log/syslog
+
+#task 123
+varLogWtmp: /var/log/wtmp
+
+#task 124
+varLogSecure: /var/log/secure
+varLogSecureMode: 0750
+varLogAuth: /var/log/auth.log
+varLogAuthMode: 0750
+
+#task 125
+tmpDirectory1: /tmp
+tmpDirectoryMode1: u=rwx,g=rwx,o=rwx,+t
+
+#task 127
+varTmpDirectory: /var/tmp
+varTmpDirectoryMode: u=rwx,g=rwx,o=rwx,+t
+
+#task 128
+varFailLogFile2: /var/log/faillog
+varFailLogFileMode2: g+w
+
+#task 129
+varLogTallyLogFile: /var/log/tallylog
+varLogTallyLogFileMode: g+w
+
+#task 130
+varLogMessages1: /var/log/messages
+varLogMessagesMode1: g+w
+varLogSyslog1: /var/log/syslog
+varLogSyslogMode1: g+w
+
+
+#task 131
+varLogWtmpFile1: /var/log/wtmp
+varLogWtmpFileMode1: g+w
+
+#task 132
+varLogSecure1: /var/log/secure
+varLogSecureMode1: g+w
+
+#task 133
+varLogAuth1: /var/log/auth.log
+varLogAuthMode1: g+w
+
+#task 134 - 135
+IBMsinitDotsh1: /etc/profile.d/IBMsinit.sh
+IBMsinitDotshMode1: g=rx,o=rx
+
+#task 138-140
+etcInitTabFile: /etc/inittab
+etcInitTabFileMode: 0755
+
+#task 141-143
+varSpoolCronRootFile: /var/spool/cron/root
+varSpoolCronRootFileMode: 0755
+
+#task 144 - 146
+etcCrontabDirectory: /etc/crontab
+etcCrontabDirectoryMode: 0755
+
+#task 147 - 149
+etcXinetdDotConfFile: /etc/xinetd.conf
+etcXinetdDotConfFileMode: 0755
+
+#task 150-151
+etcInitDotDRc0DotDFile: /etc/init.d/rc0.d
+etcInitDotDRc0DotDFileMode: 0755
+etcInitDotDRc1DotDFile: /etc/init.d/rc1.d
+etcInitDotDRc1DotDFileMode: 0755
+etcInitDotDRc2DotDFile: /etc/init.d/rc2.d
+etcInitDotDRc2DotDFileMode: 0755
+etcInitDotDRc3DotDFile: /etc/init.d/rc3.d
+etcInitDotDRc3DotDFileMode: 0755
+etcInitDotDRc4DotDFile: /etc/init.d/rc4.d
+etcInitDotDRc4DotDFileMode: 0755
+etcInitDotDRc5DotDFile: /etc/init.d/rc5.d
+etcInitDotDRc5DotDFileMode: 0755
+etcInitDotDRc6DotDFile: /etc/init.d/rc6.d
+etcInitDotDRc6DotDFileMode: 0755
+etcInitDotDRcSDotDFile: /etc/init.d/rcS.d
+etcInitDotDRcSDotDFileMode: 0755
+
+
+etcRcDotDRc0DotDFile: /etc/rc.d/rc0.d
+etcRcDotDRc0DotDFileMode: 0755
+etcRcDotDRc1DotDFile: /etc/rc.d/rc1.d
+etcRcDotDRc1DotDFileMode: 0755
+etcRcDotDRc2DotDFile: /etc/rc.d/rc2.d
+etcRcDotDRc2DotDFileMode: 0755
+etcRcDotDRc3DotDFile: /etc/rc.d/rc3.d
+etcRcDotDRc3DotDFileMode: 0755
+etcRcDotDRc4DotDFile: /etc/rc.d/rc4.d
+etcRcDotDRc4DotDFileMode: 0755
+etcRcDotDRc5DotDFile: /etc/rc.d/rc5.d
+etcRcDotDRc5DotDFileMode: 0755
+etcRcDotDRc6DotDFile: /etc/rc.d/rc6.d
+etcRcDotDRc6DotDFileMode: 0755
+etcRcDotDRcSDotDFile: /etc/rc.d/rcS.d
+etcRcDotDRcSDotDFileMode: 0755
+
+
+#task 152-153
+etcInitDotD: /etc/init.d
+etcInitDotDMode: 0755
+etcRcDotD: /etc/rc.d
+etcRcDotDMode: 0755
+
+#task 154-156
+etcCronDotD: /etc/cron.d
+etcCronDotDMode: 0755
+
+#task 157-159
+varSpoolCronTabRootFile: /var/spool/cron/tabs/root
+varSpoolCronTabRootFileMode: 0755
+
+#task 160
+optDirectory: /opt
+optDirectoryMode: 0754
+
+#task 162
+usrLocalDirectory: /usr/local
+usrLocalDirectoryMode: 0754
+
+#task 163
+tmpDirectory: /tmp
+tmpDirectoryMode: 0754
+
+#task 166
+LOGINUMASK_VALUE: umask 077
+loginDotDefs: /etc/login.defs
+
+#task 167
+IBMsinitDotsh: /etc/profile.d/IBMsinit.sh
+IBMsinitDotshValue: umask 077
+regexExpressSh: if [ $UID -gt 199 ]; then
+
+#task 167
+IBMsinitDotcsh: /etc/profile.d/IBMsinit.csh
+IBMsinitDotcshValue: umask 077
+regexExpressCsh: if ($uid > 199) then
